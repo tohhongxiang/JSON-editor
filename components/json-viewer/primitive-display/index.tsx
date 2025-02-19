@@ -3,12 +3,12 @@ import NullDisplay from "./null-display";
 import NumberDisplay from "./number-display";
 import StringDisplay from "./string-display";
 import { Primitive } from "../types";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 
-export default function PrimitiveDisplay({
+export default memo(function PrimitiveDisplay({
   keyString,
   value,
   trailingComma = true,
@@ -103,4 +103,4 @@ export default function PrimitiveDisplay({
       </div>
     </div>
   );
-}
+});

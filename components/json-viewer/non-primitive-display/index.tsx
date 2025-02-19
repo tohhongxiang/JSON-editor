@@ -5,6 +5,7 @@ import isPrimitive from "./is-primitive";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import CollapsedItem from "./collapsed-item";
+import tryConvertToObject from "./try-convert-to-object";
 
 export default function NonPrimitiveDisplay({
   keyString,
@@ -122,7 +123,7 @@ function FirstLine({
 
   const numberOfItems = getNumberOfItems(value);
   return (
-    <div className="flex flex-row items-center relative">
+    <div className="flex flex-row items-center relative group">
       {numberOfItems > 0 && (
         <Button
           variant="outline"
@@ -141,7 +142,7 @@ function FirstLine({
       <Button
         variant="outline"
         size="icon"
-        className="h-6 w-6 ml-2"
+        className="h-6 w-6 ml-2 group-hover:visible invisible"
         onClick={onAdd}
       >
         <Plus />
@@ -149,7 +150,7 @@ function FirstLine({
       <Button
         variant="outline"
         size="icon"
-        className="h-6 w-6 ml-2"
+        className="h-6 w-6 ml-2 group-hover:visible invisible"
         onClick={onDelete}
       >
         <Trash />
@@ -197,16 +198,20 @@ function MiddleLine({
   }
 
   if (Array.isArray(value)) {
-    return value.map((v, index) =>
-      isPrimitive(v) ? (
-        <PrimitiveDisplay
-          value={v}
-          trailingComma={index < value.length - 1}
-          key={index}
-          onChange={(updated) => onChange?.(updated, index)}
-          onDelete={() => onDelete?.(index)}
-        />
-      ) : (
+    return value.map((v, index) => {
+      if (isPrimitive(v)) {
+        return (
+          <PrimitiveDisplay
+            value={v}
+            trailingComma={index < value.length - 1}
+            key={index}
+            onChange={(updated) => onChange?.(updated, index)}
+            onDelete={() => onDelete?.(index)}
+          />
+        );
+      }
+
+      return (
         <NonPrimitiveDisplay
           value={v as NonPrimitive}
           trailingComma={index < value.length - 1}
@@ -214,22 +219,53 @@ function MiddleLine({
           onChange={(updated) => onChange?.(updated, index)}
           onDelete={() => onDelete?.(index)}
         />
-      )
-    );
+      );
+    });
   }
 
   const keyValuePairs = Object.entries(value);
-  return keyValuePairs.map(([k, v], index) =>
-    isPrimitive(v) ? (
-      <PrimitiveDisplay
-        keyString={k}
-        value={v}
-        trailingComma={index < keyValuePairs.length - 1}
-        key={k}
-        onChange={(updated) => onChange?.(updated, k)}
-        onDelete={() => onDelete?.(k)}
-      />
-    ) : (
+  return keyValuePairs.map(([k, v], index) => {
+    if (isPrimitive(v)) {
+      if (typeof v !== "string") {
+        // if not string, won't be stringified object
+        return (
+          <PrimitiveDisplay
+            keyString={k}
+            value={v}
+            trailingComma={index < keyValuePairs.length - 1}
+            key={k}
+            onChange={(updated) => onChange?.(updated, k)}
+            onDelete={() => onDelete?.(k)}
+          />
+        );
+      }
+
+      const finalV = tryConvertToObject(v); // check if stringified object, and display accordingly
+      if (typeof finalV === "string") {
+        return (
+          <PrimitiveDisplay
+            keyString={k}
+            value={finalV}
+            trailingComma={index < keyValuePairs.length - 1}
+            key={k}
+            onChange={(updated) => onChange?.(updated, k)}
+            onDelete={() => onDelete?.(k)}
+          />
+        );
+      }
+
+      return (
+        <NonPrimitiveDisplay
+          keyString={k}
+          value={finalV}
+          trailingComma={index < keyValuePairs.length - 1}
+          key={k}
+          onChange={(updated) => onChange?.(JSON.stringify(updated), k)}
+          onDelete={() => onDelete?.(k)}
+        />
+      );
+    }
+    return (
       <NonPrimitiveDisplay
         keyString={k}
         value={v as NonPrimitive}
@@ -238,6 +274,6 @@ function MiddleLine({
         onChange={(updated) => onChange?.(updated, k)}
         onDelete={() => onDelete?.(k)}
       />
-    )
-  );
+    );
+  });
 }
