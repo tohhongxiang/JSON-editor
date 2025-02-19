@@ -1,0 +1,53 @@
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { NonPrimitive } from "../types";
+
+export default function CollapsedItem({
+  keyString,
+  value,
+  expanded,
+  onToggleExpand,
+  trailingComma = true,
+}: {
+  keyString?: string;
+  value: NonPrimitive;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
+  trailingComma?: boolean;
+}) {
+  const openingSymbol = Array.isArray(value) ? "[" : "{";
+  const closingSymbol = Array.isArray(value) ? "]" : "}";
+  const numberOfItems = getNumberOfItems(value);
+
+  return (
+    <div className="flex flex-row items-center relative">
+      {numberOfItems > 0 && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-6 w-6 absolute -left-8"
+          onClick={onToggleExpand}
+        >
+          {expanded ? <ChevronDown /> : <ChevronRight />}
+        </Button>
+      )}
+      <pre className="font-mono font-bold">
+        {keyString ? `${keyString}: ` : ""}
+        {openingSymbol}{" "}
+        <span className="text-muted-foreground italic">
+          {numberOfItems} {numberOfItems === 1 ? "item" : "items"}
+        </span>{" "}
+        {closingSymbol}
+        {trailingComma && ","}
+      </pre>
+    </div>
+  );
+}
+
+function getNumberOfItems(value: NonPrimitive) {
+  if (Array.isArray(value)) {
+    return value.length;
+  }
+
+  return Object.entries(value).length;
+}
