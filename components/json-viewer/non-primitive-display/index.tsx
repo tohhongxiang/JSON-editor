@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import CollapsedItem from "./collapsed-item";
 import tryConvertToObject from "./try-convert-to-object";
-import { Input } from "@/components/ui/input";
-import parseStringIntoValue from "./parse-string-into-value";
+import KeyStringForm from "../key-string-form";
 
 export default function NonPrimitiveDisplay({
   keyString = "",
@@ -73,79 +72,52 @@ export default function NonPrimitiveDisplay({
   }
 
   const [isAdding, setIsAdding] = useState(false);
-  const [addedKey, setAddedKey] = useState("");
-  const [addedValue, setAddedValue] = useState("");
-  function handleStartAdd() {
-    setIsAdding(true);
-  }
 
-  function handleConfirmAdd(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    const newValue = parseStringIntoValue(addedValue);
+  function handleConfirmAdd({
+    updatedKey,
+    updatedValue,
+  }: {
+    updatedKey: string;
+    updatedValue: unknown;
+  }) {
     if (Array.isArray(value)) {
-      onChange?.({ updatedKey: keyString, updatedValue: [newValue, ...value] });
+      onChange?.({
+        updatedKey: keyString,
+        updatedValue: [updatedValue, ...value],
+      });
     } else {
       onChange?.({
         updatedKey: keyString,
-        updatedValue: { [addedKey]: newValue, ...value },
+        updatedValue: { [updatedKey]: updatedValue, ...value },
       });
     }
 
-    setAddedKey("");
-    setAddedValue("");
     setIsAdding(false);
   }
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editedKey, setEditedKey] = useState("");
-  const [editedValue, setEditedValue] = useState("");
-
-  function handleStartEdit() {
-    setEditedKey(keyString);
-    setEditedValue(JSON.stringify(value));
-    setIsEditing(true);
-  }
-
-  function handleConfirmEdit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function handleConfirmEdit({
+    updatedKey,
+    updatedValue,
+  }: {
+    updatedKey: string;
+    updatedValue: unknown;
+  }) {
     onChange?.({
-      updatedKey: editedKey,
-      updatedValue: parseStringIntoValue(editedValue),
+      updatedKey,
+      updatedValue,
     });
     setIsEditing(false);
-    setEditedKey("");
-    setEditedValue("");
   }
 
   if (isEditing) {
     return (
-      <form
-        className="flex flex-row items-center max-w-lg gap-2"
+      <KeyStringForm
+        keyString={keyString}
+        value={JSON.stringify(value)}
+        onCancel={() => setIsEditing(false)}
         onSubmit={handleConfirmEdit}
-      >
-        {keyString && (
-          <Input
-            value={editedKey}
-            onChange={(e) => setEditedKey(e.target.value)}
-          />
-        )}
-        <Input
-          value={editedValue}
-          onChange={(e) => setEditedValue(e.target.value)}
-        />
-        <Button type="submit" size="sm">
-          Save
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => setIsEditing(false)}
-        >
-          Cancel
-        </Button>
-      </form>
+      />
     );
   }
 
@@ -171,46 +143,20 @@ export default function NonPrimitiveDisplay({
         onToggleExpand={() => setExpanded((c) => !c)}
         trailingComma={trailingComma}
         onDelete={onDelete}
-        onAdd={handleStartAdd}
-        onEdit={handleStartEdit}
+        onAdd={() => setIsAdding(true)}
+        onEdit={() => setIsEditing(true)}
       />
       {expanded && (
         <>
           <div className="pl-4 border-l-2">
             {isAdding && (
-              <form
-                className="flex flex-row gap-1 items-center"
+              <KeyStringForm
+                showKey={!Array.isArray(value)}
+                keyString=""
+                value=""
+                onCancel={() => setIsAdding(false)}
                 onSubmit={handleConfirmAdd}
-              >
-                {!Array.isArray(value) && (
-                  <>
-                    <Input
-                      value={addedKey}
-                      onChange={(e) => setAddedKey(e.target.value)}
-                      className="max-w-[100px]"
-                      placeholder="key"
-                    />
-                    <pre className="font-mono font-bold">:</pre>
-                  </>
-                )}
-                <Input
-                  value={addedValue}
-                  onChange={(e) => setAddedValue(e.target.value)}
-                  className="max-w-[300px]"
-                  placeholder="value"
-                />
-                <Button size="sm" type="submit">
-                  Submit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setIsAdding(false)}
-                  type="button"
-                >
-                  Cancel
-                </Button>
-              </form>
+              />
             )}
             <MiddleLine
               value={value}

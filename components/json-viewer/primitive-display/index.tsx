@@ -4,11 +4,10 @@ import NumberDisplay from "./number-display";
 import StringDisplay from "./string-display";
 import { Primitive } from "../types";
 import { memo, useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
-import parseStringIntoValue from "../non-primitive-display/parse-string-into-value";
-import parseValueIntoString from "../non-primitive-display/parse-value-into-string";
+import parsePrimitiveIntoString from "../utils/parse-value-into-string";
+import KeyStringForm from "../key-string-form";
 
 export default memo(function PrimitiveDisplay({
   keyString = "",
@@ -31,57 +30,28 @@ export default memo(function PrimitiveDisplay({
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
-  const [editedKey, setEditedKey] = useState(keyString);
-  const [editedValue, setEditedValue] = useState(parseValueIntoString(value));
-
-  function handleStartEditing() {
-    setEditedKey(keyString);
-    setEditedValue(parseValueIntoString(value));
-    setIsEditing(true);
-  }
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function handleSubmit({
+    updatedKey,
+    updatedValue,
+  }: {
+    updatedKey: string;
+    updatedValue: unknown;
+  }) {
     setIsEditing(false);
-
-    const updatedValue = parseStringIntoValue(editedValue);
     onChange?.({
-      updatedKey: editedKey,
+      updatedKey,
       updatedValue,
     });
-
-    setEditedKey("");
-    setEditedValue("");
   }
 
   if (isEditing) {
     return (
-      <form
-        className="flex flex-row items-center max-w-lg gap-2"
+      <KeyStringForm
+        keyString={keyString}
+        value={parsePrimitiveIntoString(value)}
+        onCancel={() => setIsEditing(false)}
         onSubmit={handleSubmit}
-      >
-        {keyString && (
-          <Input
-            value={editedKey}
-            onChange={(e) => setEditedKey(e.target.value)}
-          />
-        )}
-        <Input
-          value={editedValue}
-          onChange={(e) => setEditedValue(e.target.value)}
-        />
-        <Button type="submit" size="sm">
-          Save
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => setIsEditing(false)}
-        >
-          Cancel
-        </Button>
-      </form>
+      />
     );
   }
 
@@ -90,14 +60,14 @@ export default memo(function PrimitiveDisplay({
       {keyString && (
         <pre
           className="font-bold font-mono cursor-pointer"
-          onDoubleClick={handleStartEditing}
+          onDoubleClick={() => setIsEditing(true)}
         >
           {keyString}:
         </pre>
       )}
       <div
         className="flex flex-row ml-2 cursor-pointer"
-        onDoubleClick={handleStartEditing}
+        onDoubleClick={() => setIsEditing(true)}
       >
         {typeof value === "boolean" ? (
           <BooleanDisplay value={value} />
