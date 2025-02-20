@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import CollapsedItem from "./collapsed-item";
 import tryConvertToObject from "./try-convert-to-object";
+import { Input } from "@/components/ui/input";
+import parseStringIntoValue from "./parse-string-into-value";
 
 export default function NonPrimitiveDisplay({
   keyString,
@@ -17,16 +19,31 @@ export default function NonPrimitiveDisplay({
   keyString?: string;
   value: NonPrimitive;
   trailingComma?: boolean;
-  onChange?: (updatedValue: unknown) => void;
+  onChange?: (updatedObject: unknown) => void;
   onDelete?: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
 
-  function handleChange(updatedValue: unknown, location: string | number) {
-    const finalUpdatedValue = Array.isArray(value) ? [...value] : { ...value };
+  function handleChange(
+    { updatedKey, updatedValue }: { updatedKey: string; updatedValue: unknown },
+    location: string | number
+  ) {
+    if (Array.isArray(value) && typeof location === "number") {
+      const finalUpdatedValue = [...value];
+      finalUpdatedValue[location] = updatedValue;
+      onChange?.(finalUpdatedValue);
+      return;
+    }
 
-    // @ts-expect-error Magic
-    finalUpdatedValue[location] = updatedValue;
+    const finalUpdatedValue = Object.fromEntries(
+      Object.entries(value).map(([key, value]) => {
+        if (key !== location) {
+          return [key, value];
+        }
+
+        return [updatedKey, updatedValue];
+      })
+    );
 
     onChange?.(finalUpdatedValue);
   }
@@ -42,6 +59,28 @@ export default function NonPrimitiveDisplay({
     }
 
     onChange?.(finalUpdatedValue);
+  }
+
+  const [isAdding, setIsAdding] = useState(false);
+  const [addedKey, setAddedKey] = useState("");
+  const [addedValue, setAddedValue] = useState("");
+  function handleStartAdd() {
+    setIsAdding(true);
+  }
+
+  function handleConfirmAdd(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const newValue = parseStringIntoValue(addedValue);
+    if (Array.isArray(value)) {
+      onChange?.([newValue, ...value]);
+    } else {
+      onChange?.({ [addedKey]: newValue, ...value });
+    }
+
+    setAddedKey("");
+    setAddedValue("");
+    setIsAdding(false);
   }
 
   if (!expanded) {
@@ -62,20 +101,61 @@ export default function NonPrimitiveDisplay({
         keyString={keyString}
         value={value}
         expanded={expanded}
+        isAdding={isAdding}
         onToggleExpand={() => setExpanded((c) => !c)}
         trailingComma={trailingComma}
         onDelete={onDelete}
+        onAdd={handleStartAdd}
       />
       {expanded && (
         <>
           <div className="pl-4 border-l-2">
+            {isAdding && (
+              <form
+                className="flex flex-row gap-1 items-center"
+                onSubmit={handleConfirmAdd}
+              >
+                {!Array.isArray(value) && (
+                  <>
+                    <Input
+                      value={addedKey}
+                      onChange={(e) => setAddedKey(e.target.value)}
+                      className="max-w-[100px]"
+                      placeholder="key"
+                    />
+                    <pre className="font-mono font-bold">:</pre>
+                  </>
+                )}
+                <Input
+                  value={addedValue}
+                  onChange={(e) => setAddedValue(e.target.value)}
+                  className="max-w-[300px]"
+                  placeholder="value"
+                />
+                <Button size="sm" type="submit">
+                  Submit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setIsAdding(false)}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+              </form>
+            )}
             <MiddleLine
               value={value}
               onChange={handleChange}
               onDelete={handleDelete}
             />
           </div>
-          <LastLine value={value} trailingComma={trailingComma} />
+          <LastLine
+            value={value}
+            trailingComma={trailingComma}
+            isAdding={isAdding}
+          />
         </>
       )}
     </div>
@@ -97,6 +177,7 @@ function FirstLine({
   onToggleExpand,
   onAdd,
   onDelete,
+  isAdding,
   trailingComma = true,
 }: {
   keyString?: string;
@@ -104,18 +185,19 @@ function FirstLine({
   expanded?: boolean;
   onToggleExpand?: () => void;
   onAdd?: () => void;
+  isAdding?: boolean;
   onDelete?: () => void;
   trailingComma?: boolean;
 }) {
   let symbol = "";
 
   if (Array.isArray(value)) {
-    if (value.length === 0) {
+    if (value.length === 0 && !isAdding) {
       symbol = "[]";
     } else {
       symbol = "[";
     }
-  } else if (Object.entries(value).length === 0) {
+  } else if (Object.entries(value).length === 0 && !isAdding) {
     symbol = "{}";
   } else {
     symbol = "{";
@@ -161,15 +243,17 @@ function FirstLine({
 
 function LastLine({
   value,
+  isAdding,
   trailingComma = true,
 }: {
   value: NonPrimitive;
+  isAdding?: boolean;
   trailingComma?: boolean;
 }) {
   let symbol = "";
-  if (Array.isArray(value) && value.length > 0) {
+  if (Array.isArray(value) && (value.length > 0 || isAdding)) {
     symbol = "]";
-  } else if (Object.entries(value).length > 0) {
+  } else if (Object.entries(value).length > 0 || isAdding) {
     symbol = "}";
   }
 
@@ -187,10 +271,14 @@ function MiddleLine({
   onDelete,
 }: {
   value: NonPrimitive;
-  onChange?: (updatedValue: unknown, location: string | number) => void;
+  onChange?: (
+    { updatedKey, updatedValue }: { updatedKey: string; updatedValue: unknown },
+    location: string | number
+  ) => void;
   onDelete?: (location: string | number) => void;
 }) {
   if (
+    // empty object and array
     (Array.isArray(value) && value.length === 0) ||
     (typeof value === "object" && Object.entries(value).length === 0)
   ) {
@@ -216,7 +304,9 @@ function MiddleLine({
           value={v as NonPrimitive}
           trailingComma={index < value.length - 1}
           key={index}
-          onChange={(updated) => onChange?.(updated, index)}
+          onChange={(updatedValue) =>
+            onChange?.({ updatedKey: "", updatedValue }, index)
+          }
           onDelete={() => onDelete?.(index)}
         />
       );
@@ -260,18 +350,26 @@ function MiddleLine({
           value={finalV}
           trailingComma={index < keyValuePairs.length - 1}
           key={k}
-          onChange={(updated) => onChange?.(JSON.stringify(updated), k)}
+          onChange={(updatedValue) =>
+            onChange?.(
+              { updatedKey: k, updatedValue: JSON.stringify(updatedValue) },
+              k
+            )
+          }
           onDelete={() => onDelete?.(k)}
         />
       );
     }
+
     return (
       <NonPrimitiveDisplay
         keyString={k}
         value={v as NonPrimitive}
         trailingComma={index < keyValuePairs.length - 1}
         key={k}
-        onChange={(updated) => onChange?.(updated, k)}
+        onChange={(updatedValue) =>
+          onChange?.({ updatedKey: k, updatedValue }, k)
+        }
         onDelete={() => onDelete?.(k)}
       />
     );

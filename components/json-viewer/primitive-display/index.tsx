@@ -7,9 +7,11 @@ import { memo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
+import parseStringIntoValue from "../non-primitive-display/parse-string-into-value";
+import parseValueIntoString from "../non-primitive-display/parse-value-into-string";
 
 export default memo(function PrimitiveDisplay({
-  keyString,
+  keyString = "",
   value,
   trailingComma = true,
   onChange,
@@ -18,36 +20,38 @@ export default memo(function PrimitiveDisplay({
   keyString?: string;
   value: Primitive;
   trailingComma?: boolean;
-  onChange?: (updatedValue: unknown) => void;
+  onChange?: ({
+    updatedKey,
+    updatedValue,
+  }: {
+    updatedKey: string;
+    updatedValue: unknown;
+  }) => void;
   onDelete?: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedValue, setEditedValue] = useState(
-    value === null
-      ? "null"
-      : typeof value === "boolean" || typeof value === "number"
-      ? value.toString()
-      : '"' + value.toString() + '"'
-  );
+
+  const [editedKey, setEditedKey] = useState(keyString);
+  const [editedValue, setEditedValue] = useState(parseValueIntoString(value));
+
+  function handleStartEditing() {
+    setEditedKey(keyString);
+    setEditedValue(parseValueIntoString(value));
+    setIsEditing(true);
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsEditing(false);
 
-    let updatedValue;
-    if (editedValue === "true" || editedValue === "false") {
-      updatedValue = editedValue === "true" ? true : false;
-    } else if (editedValue === "null") {
-      updatedValue = null;
-    } else if (editedValue.startsWith('"') && editedValue.endsWith('"')) {
-      updatedValue = editedValue.slice(1, -1);
-    } else if (!Number.isNaN(parseFloat(editedValue))) {
-      updatedValue = parseFloat(editedValue);
-    } else {
-      updatedValue = editedValue;
-    }
+    const updatedValue = parseStringIntoValue(editedValue);
+    onChange?.({
+      updatedKey: editedKey,
+      updatedValue,
+    });
 
-    onChange?.(updatedValue);
+    setEditedKey("");
+    setEditedValue("");
   }
 
   if (isEditing) {
@@ -56,9 +60,14 @@ export default memo(function PrimitiveDisplay({
         className="flex flex-row items-center max-w-lg gap-2"
         onSubmit={handleSubmit}
       >
-        {keyString && <pre className="font-bold font-mono">{keyString}:</pre>}
+        {keyString && (
+          <Input
+            value={editedKey}
+            onChange={(e) => setEditedKey(e.target.value)}
+          />
+        )}
         <Input
-          value={editedValue as string}
+          value={editedValue}
           onChange={(e) => setEditedValue(e.target.value)}
         />
         <Button type="submit" size="sm">
@@ -81,7 +90,7 @@ export default memo(function PrimitiveDisplay({
       {keyString && <pre className="font-bold font-mono">{keyString}:</pre>}
       <div
         className="flex flex-row ml-2 cursor-pointer"
-        onDoubleClick={() => setIsEditing(true)}
+        onDoubleClick={handleStartEditing}
       >
         {typeof value === "boolean" ? (
           <BooleanDisplay value={value} />
