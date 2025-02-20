@@ -87,7 +87,14 @@ export default memo(function PrimitiveDisplay({
 
   return (
     <div className="flex flex-row group">
-      {keyString && <pre className="font-bold font-mono">{keyString}:</pre>}
+      {keyString && (
+        <pre
+          className="font-bold font-mono cursor-pointer"
+          onDoubleClick={handleStartEditing}
+        >
+          {keyString}:
+        </pre>
+      )}
       <div
         className="flex flex-row ml-2 cursor-pointer"
         onDoubleClick={handleStartEditing}

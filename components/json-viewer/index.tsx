@@ -15,7 +15,13 @@ export default function JSONViewer({
   text: string;
   onChange?: (updatedValue: string) => void;
 }) {
-  function handleChange(updatedValue: unknown) {
+  function handleChange({
+    updatedValue,
+  }: {
+    updatedKey: string;
+    updatedValue: unknown;
+  }) {
+    console.log(updatedValue);
     onChange?.(JSON.stringify(updatedValue, null, 2));
   }
 

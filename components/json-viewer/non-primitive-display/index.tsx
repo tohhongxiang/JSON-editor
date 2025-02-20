@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import parseStringIntoValue from "./parse-string-into-value";
 
 export default function NonPrimitiveDisplay({
-  keyString,
+  keyString = "",
   value,
   trailingComma = true,
   onChange,
@@ -19,7 +19,13 @@ export default function NonPrimitiveDisplay({
   keyString?: string;
   value: NonPrimitive;
   trailingComma?: boolean;
-  onChange?: (updatedObject: unknown) => void;
+  onChange?: ({
+    updatedKey,
+    updatedValue,
+  }: {
+    updatedKey: string;
+    updatedValue: unknown;
+  }) => void;
   onDelete?: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
@@ -28,10 +34,15 @@ export default function NonPrimitiveDisplay({
     { updatedKey, updatedValue }: { updatedKey: string; updatedValue: unknown },
     location: string | number
   ) {
+    console.log({ updatedKey, updatedValue, location });
+
     if (Array.isArray(value) && typeof location === "number") {
       const finalUpdatedValue = [...value];
       finalUpdatedValue[location] = updatedValue;
-      onChange?.(finalUpdatedValue);
+
+      console.log({ updatedKey: keyString, updatedValue: finalUpdatedValue });
+
+      onChange?.({ updatedKey: keyString, updatedValue: finalUpdatedValue });
       return;
     }
 
@@ -45,7 +56,7 @@ export default function NonPrimitiveDisplay({
       })
     );
 
-    onChange?.(finalUpdatedValue);
+    onChange?.({ updatedKey: keyString, updatedValue: finalUpdatedValue });
   }
 
   function handleDelete(location: string | number) {
@@ -58,7 +69,7 @@ export default function NonPrimitiveDisplay({
       delete finalUpdatedValue[location];
     }
 
-    onChange?.(finalUpdatedValue);
+    onChange?.({ updatedKey: keyString, updatedValue: finalUpdatedValue });
   }
 
   const [isAdding, setIsAdding] = useState(false);
@@ -73,14 +84,69 @@ export default function NonPrimitiveDisplay({
 
     const newValue = parseStringIntoValue(addedValue);
     if (Array.isArray(value)) {
-      onChange?.([newValue, ...value]);
+      onChange?.({ updatedKey: keyString, updatedValue: [newValue, ...value] });
     } else {
-      onChange?.({ [addedKey]: newValue, ...value });
+      onChange?.({
+        updatedKey: keyString,
+        updatedValue: { [addedKey]: newValue, ...value },
+      });
     }
 
     setAddedKey("");
     setAddedValue("");
     setIsAdding(false);
+  }
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedKey, setEditedKey] = useState("");
+  const [editedValue, setEditedValue] = useState("");
+
+  function handleStartEdit() {
+    setEditedKey(keyString);
+    setEditedValue(JSON.stringify(value));
+    setIsEditing(true);
+  }
+
+  function handleConfirmEdit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    onChange?.({
+      updatedKey: editedKey,
+      updatedValue: parseStringIntoValue(editedValue),
+    });
+    setIsEditing(false);
+    setEditedKey("");
+    setEditedValue("");
+  }
+
+  if (isEditing) {
+    return (
+      <form
+        className="flex flex-row items-center max-w-lg gap-2"
+        onSubmit={handleConfirmEdit}
+      >
+        {keyString && (
+          <Input
+            value={editedKey}
+            onChange={(e) => setEditedKey(e.target.value)}
+          />
+        )}
+        <Input
+          value={editedValue}
+          onChange={(e) => setEditedValue(e.target.value)}
+        />
+        <Button type="submit" size="sm">
+          Save
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => setIsEditing(false)}
+        >
+          Cancel
+        </Button>
+      </form>
+    );
   }
 
   if (!expanded) {
@@ -106,6 +172,7 @@ export default function NonPrimitiveDisplay({
         trailingComma={trailingComma}
         onDelete={onDelete}
         onAdd={handleStartAdd}
+        onEdit={handleStartEdit}
       />
       {expanded && (
         <>
@@ -177,6 +244,7 @@ function FirstLine({
   onToggleExpand,
   onAdd,
   onDelete,
+  onEdit,
   isAdding,
   trailingComma = true,
 }: {
@@ -186,6 +254,7 @@ function FirstLine({
   onToggleExpand?: () => void;
   onAdd?: () => void;
   isAdding?: boolean;
+  onEdit?: () => void;
   onDelete?: () => void;
   trailingComma?: boolean;
 }) {
@@ -216,7 +285,10 @@ function FirstLine({
           {expanded ? <ChevronDown /> : <ChevronRight />}
         </Button>
       )}
-      <pre className="font-mono font-bold">
+      <pre
+        className="font-mono font-bold cursor-pointer"
+        onDoubleClick={onEdit}
+      >
         {keyString ? `${keyString}: ` : ""}
         {symbol}
         {trailingComma && numberOfItems === 0 ? "," : ""}
@@ -288,6 +360,39 @@ function MiddleLine({
   if (Array.isArray(value)) {
     return value.map((v, index) => {
       if (isPrimitive(v)) {
+        if (typeof v === "string") {
+          const finalV = tryConvertToObject(v);
+          if (typeof finalV === "string") {
+            return (
+              <PrimitiveDisplay
+                value={finalV}
+                trailingComma={index < value.length - 1}
+                key={index}
+                onChange={(updated) => onChange?.(updated, index)}
+                onDelete={() => onDelete?.(index)}
+              />
+            );
+          }
+
+          return (
+            <NonPrimitiveDisplay
+              value={finalV}
+              trailingComma={index < value.length - 1}
+              key={index}
+              onChange={({ updatedKey, updatedValue }) =>
+                onChange?.(
+                  {
+                    updatedKey: updatedKey,
+                    updatedValue: JSON.stringify(updatedValue),
+                  },
+                  index
+                )
+              }
+              onDelete={() => onDelete?.(index)}
+            />
+          );
+        }
+
         return (
           <PrimitiveDisplay
             value={v}
@@ -304,9 +409,7 @@ function MiddleLine({
           value={v as NonPrimitive}
           trailingComma={index < value.length - 1}
           key={index}
-          onChange={(updatedValue) =>
-            onChange?.({ updatedKey: "", updatedValue }, index)
-          }
+          onChange={(updatedValue) => onChange?.(updatedValue, index)}
           onDelete={() => onDelete?.(index)}
         />
       );
@@ -350,9 +453,12 @@ function MiddleLine({
           value={finalV}
           trailingComma={index < keyValuePairs.length - 1}
           key={k}
-          onChange={(updatedValue) =>
+          onChange={({ updatedKey, updatedValue }) =>
             onChange?.(
-              { updatedKey: k, updatedValue: JSON.stringify(updatedValue) },
+              {
+                updatedKey: updatedKey,
+                updatedValue: JSON.stringify(updatedValue),
+              },
               k
             )
           }
@@ -367,9 +473,7 @@ function MiddleLine({
         value={v as NonPrimitive}
         trailingComma={index < keyValuePairs.length - 1}
         key={k}
-        onChange={(updatedValue) =>
-          onChange?.({ updatedKey: k, updatedValue }, k)
-        }
+        onChange={(updatedValue) => onChange?.(updatedValue, k)}
         onDelete={() => onDelete?.(k)}
       />
     );
