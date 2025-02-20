@@ -19,8 +19,8 @@ export default function parseStringIntoValue(string: string) {
     return string === "true" ? true : false;
   } else if (string === "null") {
     return null;
-  } else if (!Number.isNaN(parseFloat(string))) {
-    return parseFloat(string);
+  } else if (!Number.isNaN(+string)) {
+    return +string;
   } else {
     return string;
   }
