@@ -41,14 +41,16 @@ export default function KeyStringForm({
     setEditedValue(value);
   }
 
+  const showKeyInput = keyString || showKey;
   return (
     <form
       className="flex flex-row items-center max-w-lg gap-2"
       onSubmit={handleSubmit}
     >
-      {(keyString || showKey) && (
+      {showKeyInput && (
         <div className="flex flex-row items-center gap-1">
           <Input
+            autoFocus={keyString.length === 0}
             className="invalid:border-destructive focus:invalid:ring-destructive"
             value={editedKey}
             onChange={(e) => setEditedKey(e.target.value)}
@@ -58,7 +60,7 @@ export default function KeyStringForm({
         </div>
       )}
       <Input
-        autoFocus
+        autoFocus={keyString.length !== 0 || !showKeyInput}
         value={editedValue}
         onChange={(e) => setEditedValue(e.target.value)}
       />

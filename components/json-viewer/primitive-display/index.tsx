@@ -58,7 +58,7 @@ export default memo(function PrimitiveDisplay({
   return (
     <div className="flex flex-row items-center group">
       <button
-        onClick={() => setIsEditing(true)}
+        onDoubleClick={() => setIsEditing(true)}
         className="flex flex-row items-center px-1"
       >
         {keyString && (

@@ -51,10 +51,12 @@ export default function FirstLine({
         ) : (
           <pre className="font-mono font-bold">
             {keyString ? `${keyString}: ` : ""}
-            {openingSymbol}{" "}
-            <span className="text-muted-foreground italic">
-              {numberOfItems} {numberOfItems === 1 ? "item" : "items"}
-            </span>{" "}
+            {openingSymbol}
+            {numberOfItems > 0 && (
+              <span className="text-muted-foreground italic mx-2">
+                {numberOfItems} {numberOfItems === 1 ? "item" : "items"}
+              </span>
+            )}
             {closingSymbol}
             {trailingComma && ","}
           </pre>
