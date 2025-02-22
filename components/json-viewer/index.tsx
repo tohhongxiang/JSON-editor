@@ -1,4 +1,6 @@
 import NonPrimitiveDisplay from "./non-primitive-display";
+import isPrimitive from "./non-primitive-display/is-primitive";
+import PrimitiveDisplay from "./primitive-display";
 
 function safeParse(text: string) {
   try {
@@ -33,6 +35,18 @@ export default function JSONViewer({
     return <pre>{text}</pre>;
   }
 
+  if (isPrimitive(result)) {
+    return (
+      <div className="px-2">
+        <PrimitiveDisplay
+          value={result}
+          trailingComma={false}
+          onChange={handleChange}
+          onDelete={handleDelete}
+        />
+      </div>
+    );
+  }
   return (
     <div className="ml-10">
       <NonPrimitiveDisplay
