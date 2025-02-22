@@ -56,33 +56,34 @@ export default memo(function PrimitiveDisplay({
   }
 
   return (
-    <div className="flex flex-row group">
-      {keyString && (
-        <pre
-          className="font-bold font-mono cursor-pointer peer"
-          onDoubleClick={() => setIsEditing(true)}
-        >
-          {keyString}:
-        </pre>
-      )}
-      <div
-        className={"flex flex-row cursor-pointer peer-[]:ml-2"}
-        onDoubleClick={() => setIsEditing(true)}
+    <div className="flex flex-row items-center group">
+      <button
+        onClick={() => setIsEditing(true)}
+        className="flex flex-row items-center px-1"
       >
-        {typeof value === "boolean" ? (
-          <BooleanDisplay value={value} />
-        ) : typeof value === "number" ? (
-          <NumberDisplay value={value} />
-        ) : typeof value === "string" ? (
-          <StringDisplay value={value} />
-        ) : (
-          <NullDisplay />
+        {keyString && (
+          <pre className="font-bold font-mono cursor-pointer peer">
+            {keyString}:
+          </pre>
         )}
-        {trailingComma && <pre className="font-bold font-mono">,</pre>}
+        <div className={"flex flex-row cursor-pointer peer-[]:ml-2"}>
+          {typeof value === "boolean" ? (
+            <BooleanDisplay value={value} />
+          ) : typeof value === "number" ? (
+            <NumberDisplay value={value} />
+          ) : typeof value === "string" ? (
+            <StringDisplay value={value} />
+          ) : (
+            <NullDisplay />
+          )}
+          {trailingComma && <pre className="font-bold font-mono">,</pre>}
+        </div>
+      </button>
+      <div className="flex flex-row gap-2 group-focus-within:visible group-hover:visible invisible ml-2">
         <Button
           variant="outline"
           size="icon"
-          className="h-6 w-6 ml-2 group-hover:visible invisible"
+          className="h-6 w-6"
           onClick={() => setIsEditing(true)}
         >
           <Pencil />
@@ -90,7 +91,7 @@ export default memo(function PrimitiveDisplay({
         <Button
           variant="outline"
           size="icon"
-          className="h-6 w-6 ml-2 group-hover:visible invisible"
+          className="h-6 w-6"
           onClick={onDelete}
         >
           <Trash />

@@ -1,6 +1,5 @@
 import { NonPrimitive } from "../types";
 import { useState } from "react";
-import CollapsedItem from "./collapsed-item";
 import KeyStringForm from "../key-string-form";
 import FirstLine from "./first-line";
 import LastLine from "./last-line";
@@ -113,18 +112,6 @@ export default function NonPrimitiveDisplay({
     );
   }
 
-  if (!expanded) {
-    return (
-      <CollapsedItem
-        keyString={keyString}
-        value={value}
-        trailingComma={trailingComma}
-        expanded={expanded}
-        onToggleExpand={() => setExpanded((c) => !c)}
-      />
-    );
-  }
-
   return (
     <div className="rounded-md">
       <FirstLine
@@ -135,7 +122,10 @@ export default function NonPrimitiveDisplay({
         onToggleExpand={() => setExpanded((c) => !c)}
         trailingComma={trailingComma}
         onDelete={onDelete}
-        onAdd={() => setIsAdding(true)}
+        onAdd={() => {
+          setExpanded(true);
+          setIsAdding(true);
+        }}
         onEdit={() => setIsEditing(true)}
       />
       <div className="pl-4 border-l-2">
@@ -148,13 +138,15 @@ export default function NonPrimitiveDisplay({
             onSubmit={handleConfirmAdd}
           />
         )}
-        <MiddleLine
-          value={value}
-          onChange={handleChange}
-          onDelete={handleDelete}
-        />
+        {expanded && (
+          <MiddleLine
+            value={value}
+            onChange={handleChange}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
-      {(getNumberOfItems(value) > 0 || isAdding) && (
+      {expanded && (getNumberOfItems(value) > 0 || isAdding) && (
         <LastLine
           value={value}
           trailingComma={trailingComma}

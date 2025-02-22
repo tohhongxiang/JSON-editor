@@ -24,7 +24,6 @@ export default function CollapsedItem({
     <button
       className="flex flex-row items-center relative"
       onClick={onToggleExpand}
-      tabIndex={-1}
     >
       {numberOfItems > 0 && (
         <div

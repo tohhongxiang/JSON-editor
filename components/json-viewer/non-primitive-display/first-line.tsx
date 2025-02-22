@@ -24,19 +24,8 @@ export default function FirstLine({
   onDelete?: () => void;
   trailingComma?: boolean;
 }) {
-  let symbol = "";
-
-  if (Array.isArray(value)) {
-    if (value.length === 0 && !isAdding) {
-      symbol = "[]";
-    } else {
-      symbol = "[";
-    }
-  } else if (Object.entries(value).length === 0 && !isAdding) {
-    symbol = "{}";
-  } else {
-    symbol = "{";
-  }
+  const openingSymbol = Array.isArray(value) ? "[" : "{";
+  const closingSymbol = Array.isArray(value) ? "]" : "}";
 
   const numberOfItems = getNumberOfItems(value);
   return (
@@ -51,38 +40,52 @@ export default function FirstLine({
           {expanded ? <ChevronDown /> : <ChevronRight />}
         </Button>
       )}
-      <pre
-        className="font-mono font-bold cursor-pointer"
-        onDoubleClick={onEdit}
-      >
-        {keyString ? `${keyString}: ` : ""}
-        {symbol}
-        {trailingComma && numberOfItems === 0 ? "," : ""}
-      </pre>
-      <Button
-        variant="outline"
-        size="icon"
-        className="h-6 w-6 ml-2 group-hover:visible invisible"
-        onClick={onAdd}
-      >
-        <Plus />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        className="h-6 w-6 ml-2 group-hover:visible invisible"
-        onClick={onEdit}
-      >
-        <Pencil />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        className="h-6 w-6 ml-2 group-hover:visible invisible"
-        onClick={onDelete}
-      >
-        <Trash />
-      </Button>
+      <button onClick={onToggleExpand}>
+        {expanded ? (
+          <pre className="font-mono font-bold cursor-pointer">
+            {keyString ? `${keyString}: ` : ""}
+            {openingSymbol}
+            {numberOfItems === 0 && !isAdding && closingSymbol}
+            {trailingComma && !isAdding && numberOfItems === 0 ? "," : ""}
+          </pre>
+        ) : (
+          <pre className="font-mono font-bold">
+            {keyString ? `${keyString}: ` : ""}
+            {openingSymbol}{" "}
+            <span className="text-muted-foreground italic">
+              {numberOfItems} {numberOfItems === 1 ? "item" : "items"}
+            </span>{" "}
+            {closingSymbol}
+            {trailingComma && ","}
+          </pre>
+        )}
+      </button>
+      <div className="flex flex-row group-focus-within:visible group-hover:visible invisible gap-2 ml-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-6 w-6"
+          onClick={onAdd}
+        >
+          <Plus />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-6 w-6"
+          onClick={onEdit}
+        >
+          <Pencil />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-6 w-6"
+          onClick={onDelete}
+        >
+          <Trash />
+        </Button>
+      </div>
     </div>
   );
 }
