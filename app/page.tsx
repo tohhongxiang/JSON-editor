@@ -41,21 +41,29 @@ export default function Home() {
 
   return (
     <div className="flex flex-row h-screen w-screen">
-      <div className="flex flex-col h-screen p-4 gap-4 w-1/2">
-        <div className="flex-1">
+      <div className="flex flex-col h-screen gap-2 w-1/2 border-r">
+        <div className="border-b mb-1 flex flex-row justify-between items-center py-2 px-4">
+          <h1 className="font-bold">Input</h1>
+          <Button onClick={handleCopy}>
+            <Copy />
+          </Button>
+        </div>
+        <div className="flex-1 px-4">
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={20}
-            className="h-full"
+            className="h-full resize-none"
           />
         </div>
-        <Button className="shrink-0" onClick={handleFormat}>
-          Format
-        </Button>
+        <div className="py-2 px-4">
+          <Button className="shrink-0 w-full" onClick={handleFormat}>
+            Format
+          </Button>
+        </div>
       </div>
-      <div className="h-screen py-4 w-1/2 flex flex-col">
-        <div className="border-b mb-1 flex flex-row justify-between items-center py-1 pr-2">
+      <div className="h-screen w-1/2 flex flex-col">
+        <div className="border-b mb-1 flex flex-row justify-between items-center py-2 px-4">
           <h1 className="font-bold">Output</h1>
           <Button onClick={handleCopy}>
             <Copy />

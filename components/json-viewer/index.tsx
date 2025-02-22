@@ -21,7 +21,6 @@ export default function JSONViewer({
     updatedKey: string;
     updatedValue: unknown;
   }) {
-    console.log(updatedValue);
     onChange?.(JSON.stringify(updatedValue, null, 2));
   }
 
@@ -35,7 +34,7 @@ export default function JSONViewer({
   }
 
   return (
-    <div className="ml-8 w-full">
+    <div className="ml-10">
       <NonPrimitiveDisplay
         value={result}
         trailingComma={false}

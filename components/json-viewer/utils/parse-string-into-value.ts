@@ -1,12 +1,17 @@
 export default function parseStringIntoValue(string: string) {
+  if (string.length === 0) {
+    return undefined;
+  }
+
   if (string.startsWith('"') && string.endsWith('"')) {
     try {
       return JSON.parse(string);
-    } catch (e) {
-      console.log(e);
+    } catch {
       return string.slice(1, -1);
     }
-  } else if (
+  }
+
+  if (
     (string.startsWith("[") && string.endsWith("]")) ||
     (string.startsWith("{") && string.endsWith("}"))
   ) {
@@ -15,13 +20,19 @@ export default function parseStringIntoValue(string: string) {
     } catch {
       return string;
     }
-  } else if (string === "true" || string === "false") {
-    return string === "true" ? true : false;
-  } else if (string === "null") {
-    return null;
-  } else if (!Number.isNaN(+string)) {
-    return +string;
-  } else {
-    return string;
   }
+
+  if (string === "true" || string === "false") {
+    return string === "true" ? true : false;
+  }
+
+  if (string === "null") {
+    return null;
+  }
+
+  if (!Number.isNaN(+string)) {
+    return +string;
+  }
+
+  return string;
 }

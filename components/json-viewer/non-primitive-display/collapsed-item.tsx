@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { NonPrimitive } from "../types";
+import { cn } from "@/lib/utils";
 
 export default function CollapsedItem({
   keyString,
@@ -20,16 +21,21 @@ export default function CollapsedItem({
   const numberOfItems = getNumberOfItems(value);
 
   return (
-    <div className="flex flex-row items-center relative">
+    <button
+      className="flex flex-row items-center relative"
+      onClick={onToggleExpand}
+      tabIndex={-1}
+    >
       {numberOfItems > 0 && (
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-6 w-6 absolute -left-8"
-          onClick={onToggleExpand}
+        <div
+          tabIndex={0}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "icon" }),
+            "h-6 w-6 absolute -left-8"
+          )}
         >
           {expanded ? <ChevronDown /> : <ChevronRight />}
-        </Button>
+        </div>
       )}
       <pre className="font-mono font-bold">
         {keyString ? `${keyString}: ` : ""}
@@ -40,7 +46,7 @@ export default function CollapsedItem({
         {closingSymbol}
         {trailingComma && ","}
       </pre>
-    </div>
+    </button>
   );
 }
 

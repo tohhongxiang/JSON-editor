@@ -5,7 +5,7 @@ import StringDisplay from "./string-display";
 import { Primitive } from "../types";
 import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 import parsePrimitiveIntoString from "../utils/parse-value-into-string";
 import KeyStringForm from "../key-string-form";
 
@@ -59,14 +59,14 @@ export default memo(function PrimitiveDisplay({
     <div className="flex flex-row group">
       {keyString && (
         <pre
-          className="font-bold font-mono cursor-pointer"
+          className="font-bold font-mono cursor-pointer peer"
           onDoubleClick={() => setIsEditing(true)}
         >
           {keyString}:
         </pre>
       )}
       <div
-        className="flex flex-row ml-2 cursor-pointer"
+        className={"flex flex-row cursor-pointer peer-[]:ml-2"}
         onDoubleClick={() => setIsEditing(true)}
       >
         {typeof value === "boolean" ? (
@@ -81,10 +81,19 @@ export default memo(function PrimitiveDisplay({
         {trailingComma && <pre className="font-bold font-mono">,</pre>}
         <Button
           variant="outline"
+          size="icon"
+          className="h-6 w-6 ml-2 group-hover:visible invisible"
+          onClick={() => setIsEditing(true)}
+        >
+          <Pencil />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
           className="h-6 w-6 ml-2 group-hover:visible invisible"
           onClick={onDelete}
         >
-          <Trash className="h-4 w-4" />
+          <Trash />
         </Button>
       </div>
     </div>

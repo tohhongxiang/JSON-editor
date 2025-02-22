@@ -49,8 +49,10 @@ export default function KeyStringForm({
       {(keyString || showKey) && (
         <div className="flex flex-row items-center gap-1">
           <Input
+            className="invalid:border-destructive focus:invalid:ring-destructive"
             value={editedKey}
             onChange={(e) => setEditedKey(e.target.value)}
+            required
           />
           <pre className="font-mono font-bold">:</pre>
         </div>
