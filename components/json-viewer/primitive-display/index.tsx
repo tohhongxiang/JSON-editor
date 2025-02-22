@@ -29,6 +29,7 @@ export default memo(function PrimitiveDisplay({
   onDelete?: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [autoFocusOn, setAutoFocusOn] = useState<"key" | "value">("value");
 
   function handleSubmit({
     updatedKey,
@@ -48,6 +49,7 @@ export default memo(function PrimitiveDisplay({
     return (
       <KeyStringForm
         keyString={keyString}
+        autoFocusOn={autoFocusOn}
         value={parsePrimitiveIntoString(value)}
         onCancel={() => setIsEditing(false)}
         onSubmit={handleSubmit}
@@ -56,16 +58,29 @@ export default memo(function PrimitiveDisplay({
   }
 
   return (
-    <div className="flex flex-row items-center group">
-      <button
-        onDoubleClick={() => setIsEditing(true)}
-        className="displayer flex flex-row items-center px-1 gap-2 group-focus-within:bg-border hover:bg-gray-500/5 rounded-md has-[.displayer:hover]:bg-inherit"
-        tabIndex={-1}
-      >
+    <div className="displayer flex flex-row items-center group">
+      <div className="flex flex-row items-center px-1 gap-2 hover:bg-gray-500/10 rounded-md has-[.displayer:hover]:bg-inherit">
         {keyString && (
-          <pre className="font-bold font-mono cursor-pointer">{keyString}:</pre>
+          <button
+            onDoubleClick={() => {
+              setAutoFocusOn("key");
+              setIsEditing(true);
+            }}
+            tabIndex={-1}
+          >
+            <pre className="font-bold font-mono cursor-pointer">
+              {keyString}:
+            </pre>
+          </button>
         )}
-        <div className={"flex flex-row cursor-pointer"}>
+        <button
+          onDoubleClick={() => {
+            setAutoFocusOn("value");
+            setIsEditing(true);
+          }}
+          tabIndex={-1}
+          className={"flex flex-row cursor-pointer"}
+        >
           {typeof value === "boolean" ? (
             <BooleanDisplay value={value} />
           ) : typeof value === "number" ? (
@@ -76,8 +91,8 @@ export default memo(function PrimitiveDisplay({
             <NullDisplay />
           )}
           {trailingComma && <pre className="font-bold font-mono">,</pre>}
-        </div>
-      </button>
+        </button>
+      </div>
       <div className="flex flex-row gap-2 group-has-[:focus-visible]:opacity-100 group-hover:opacity-100 opacity-0 ml-2">
         <Button
           variant="outline"

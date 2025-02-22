@@ -15,7 +15,7 @@ interface FirstLineProps
   onToggleExpand?: () => void;
   onAdd?: () => void;
   isAdding?: boolean;
-  onEdit?: () => void;
+  onEdit?: (autoFocusOn: "key" | "value") => void;
   onDelete?: () => void;
   trailingComma?: boolean;
 }
@@ -89,7 +89,7 @@ export default function FirstLine({
           variant="outline"
           size="icon"
           className="h-6 w-6"
-          onClick={onEdit}
+          onClick={() => onEdit?.("value")}
         >
           <Pencil />
         </Button>

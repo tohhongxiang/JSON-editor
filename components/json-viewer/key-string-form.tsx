@@ -9,6 +9,7 @@ export default function KeyStringForm({
   onSubmit,
   onCancel,
   showKey,
+  autoFocusOn = "value",
 }: {
   keyString: string;
   value: string;
@@ -21,6 +22,7 @@ export default function KeyStringForm({
     updatedValue: unknown;
   }) => void;
   onCancel?: () => void;
+  autoFocusOn?: "key" | "value";
 }) {
   const [editedKey, setEditedKey] = useState("");
   const [editedValue, setEditedValue] = useState(value);
@@ -50,7 +52,7 @@ export default function KeyStringForm({
       {showKeyInput && (
         <div className="flex flex-row items-center gap-1">
           <Input
-            autoFocus={keyString.length === 0}
+            autoFocus={autoFocusOn === "key"}
             className="invalid:border-destructive focus:invalid:ring-destructive"
             value={editedKey}
             onChange={(e) => setEditedKey(e.target.value)}
@@ -61,7 +63,7 @@ export default function KeyStringForm({
         </div>
       )}
       <Input
-        autoFocus={keyString.length !== 0 || !showKeyInput}
+        autoFocus={autoFocusOn === "value" || !showKeyInput}
         value={editedValue}
         onChange={(e) => setEditedValue(e.target.value)}
         placeholder="value"

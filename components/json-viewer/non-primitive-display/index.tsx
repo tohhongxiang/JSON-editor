@@ -96,6 +96,8 @@ export default function NonPrimitiveDisplay({
   }
 
   const [isEditing, setIsEditing] = useState(false);
+  const [focusOn, setFocusOn] = useState<"key" | "value">("value");
+
   function handleConfirmEdit({
     updatedKey,
     updatedValue,
@@ -116,6 +118,7 @@ export default function NonPrimitiveDisplay({
     return (
       <KeyStringForm
         keyString={keyString}
+        autoFocusOn={focusOn}
         value={JSON.stringify(value)}
         onCancel={() => setIsEditing(false)}
         onSubmit={handleConfirmEdit}
@@ -127,7 +130,7 @@ export default function NonPrimitiveDisplay({
     <div
       {...props}
       className={cn(
-        "displayer rounded-md hover:bg-gray-500/5 has-[.displayer:hover]:bg-inherit",
+        "displayer rounded-md hover:bg-gray-500/10 has-[.displayer:hover]:bg-inherit",
         props.className
       )}
     >
@@ -143,7 +146,10 @@ export default function NonPrimitiveDisplay({
           setExpanded(true);
           setIsAdding(true);
         }}
-        onEdit={() => setIsEditing(true)}
+        onEdit={(autoFocusOn) => {
+          setIsEditing(true);
+          setFocusOn(autoFocusOn);
+        }}
       />
       <div className="pl-4 border-l-2">
         {isAdding && (
@@ -151,6 +157,7 @@ export default function NonPrimitiveDisplay({
             showKey={!Array.isArray(value)}
             keyString=""
             value=""
+            autoFocusOn="key"
             onCancel={() => setIsAdding(false)}
             onSubmit={handleConfirmAdd}
           />
