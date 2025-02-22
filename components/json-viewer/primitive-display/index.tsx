@@ -59,14 +59,13 @@ export default memo(function PrimitiveDisplay({
     <div className="flex flex-row items-center group">
       <button
         onDoubleClick={() => setIsEditing(true)}
-        className="flex flex-row items-center px-1"
+        className="displayer flex flex-row items-center px-1 gap-2 group-focus-within:bg-border hover:bg-gray-500/5 rounded-md has-[.displayer:hover]:bg-inherit"
+        tabIndex={-1}
       >
         {keyString && (
-          <pre className="font-bold font-mono cursor-pointer peer">
-            {keyString}:
-          </pre>
+          <pre className="font-bold font-mono cursor-pointer">{keyString}:</pre>
         )}
-        <div className={"flex flex-row cursor-pointer peer-[]:ml-2"}>
+        <div className={"flex flex-row cursor-pointer"}>
           {typeof value === "boolean" ? (
             <BooleanDisplay value={value} />
           ) : typeof value === "number" ? (
@@ -79,7 +78,7 @@ export default memo(function PrimitiveDisplay({
           {trailingComma && <pre className="font-bold font-mono">,</pre>}
         </div>
       </button>
-      <div className="flex flex-row gap-2 group-focus-within:visible group-hover:visible invisible ml-2">
+      <div className="flex flex-row gap-2 group-has-[:focus-visible]:opacity-100 group-hover:opacity-100 opacity-0 ml-2">
         <Button
           variant="outline"
           size="icon"

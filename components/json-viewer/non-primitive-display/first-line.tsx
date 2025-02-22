@@ -2,6 +2,23 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Pencil, Plus, Trash } from "lucide-react";
 import { NonPrimitive } from "../types";
 import getNumberOfItems from "./get-number-of-items";
+import { cn } from "@/lib/utils";
+
+interface FirstLineProps
+  extends React.DetailedHTMLProps<
+    React.HTMLAttributes<HTMLDivElement>,
+    HTMLDivElement
+  > {
+  keyString?: string;
+  value: NonPrimitive;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
+  onAdd?: () => void;
+  isAdding?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  trailingComma?: boolean;
+}
 
 export default function FirstLine({
   keyString,
@@ -13,23 +30,20 @@ export default function FirstLine({
   onEdit,
   isAdding,
   trailingComma = true,
-}: {
-  keyString?: string;
-  value: NonPrimitive;
-  expanded?: boolean;
-  onToggleExpand?: () => void;
-  onAdd?: () => void;
-  isAdding?: boolean;
-  onEdit?: () => void;
-  onDelete?: () => void;
-  trailingComma?: boolean;
-}) {
+  ...props
+}: FirstLineProps) {
   const openingSymbol = Array.isArray(value) ? "[" : "{";
   const closingSymbol = Array.isArray(value) ? "]" : "}";
 
   const numberOfItems = getNumberOfItems(value);
   return (
-    <div className="flex flex-row items-center relative group">
+    <div
+      className={cn(
+        "flex flex-row items-center relative group",
+        props.className
+      )}
+      {...props}
+    >
       {numberOfItems > 0 && (
         <Button
           variant="outline"
@@ -40,7 +54,7 @@ export default function FirstLine({
           {expanded ? <ChevronDown /> : <ChevronRight />}
         </Button>
       )}
-      <button onClick={onToggleExpand}>
+      <button onClick={onToggleExpand} tabIndex={-1}>
         {expanded ? (
           <pre className="font-mono font-bold cursor-pointer">
             {keyString ? `${keyString}: ` : ""}
@@ -62,7 +76,7 @@ export default function FirstLine({
           </pre>
         )}
       </button>
-      <div className="flex flex-row group-focus-within:visible group-hover:visible invisible gap-2 ml-2">
+      <div className="flex flex-row group-hover:opacity-100 opacity-0 gap-2 ml-2 group-has-[:focus-visible]:opacity-100">
         <Button
           variant="outline"
           size="icon"

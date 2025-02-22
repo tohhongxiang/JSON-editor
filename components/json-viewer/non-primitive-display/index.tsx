@@ -5,14 +5,16 @@ import FirstLine from "./first-line";
 import LastLine from "./last-line";
 import getNumberOfItems from "./get-number-of-items";
 import MiddleLine from "./middle-line";
+import { cn } from "@/lib/utils";
 
-export default function NonPrimitiveDisplay({
-  keyString = "",
-  value,
-  trailingComma = true,
-  onChange,
-  onDelete,
-}: {
+interface NonPrimitiveDisplayProps
+  extends Omit<
+    React.DetailedHTMLProps<
+      React.HTMLAttributes<HTMLDivElement>,
+      HTMLDivElement
+    >,
+    "onChange"
+  > {
   keyString?: string;
   value: NonPrimitive;
   trailingComma?: boolean;
@@ -24,7 +26,16 @@ export default function NonPrimitiveDisplay({
     updatedValue: unknown;
   }) => void;
   onDelete?: () => void;
-}) {
+}
+
+export default function NonPrimitiveDisplay({
+  keyString = "",
+  value,
+  trailingComma = true,
+  onChange,
+  onDelete,
+  ...props
+}: NonPrimitiveDisplayProps) {
   function handleChange(
     { updatedKey, updatedValue }: { updatedKey: string; updatedValue: unknown },
     location: string | number
@@ -113,7 +124,13 @@ export default function NonPrimitiveDisplay({
   }
 
   return (
-    <div className="rounded-md">
+    <div
+      {...props}
+      className={cn(
+        "displayer rounded-md hover:bg-gray-500/5 has-[.displayer:hover]:bg-inherit",
+        props.className
+      )}
+    >
       <FirstLine
         keyString={keyString}
         value={value}

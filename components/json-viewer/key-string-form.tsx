@@ -44,7 +44,7 @@ export default function KeyStringForm({
   const showKeyInput = keyString || showKey;
   return (
     <form
-      className="flex flex-row items-center max-w-lg gap-2"
+      className="flex flex-row items-center max-w-lg gap-2 displayer"
       onSubmit={handleSubmit}
     >
       {showKeyInput && (
@@ -55,6 +55,7 @@ export default function KeyStringForm({
             value={editedKey}
             onChange={(e) => setEditedKey(e.target.value)}
             required
+            placeholder="key"
           />
           <pre className="font-mono font-bold">:</pre>
         </div>
@@ -63,6 +64,7 @@ export default function KeyStringForm({
         autoFocus={keyString.length !== 0 || !showKeyInput}
         value={editedValue}
         onChange={(e) => setEditedValue(e.target.value)}
+        placeholder="value"
       />
       <Button type="submit" size="sm">
         Save

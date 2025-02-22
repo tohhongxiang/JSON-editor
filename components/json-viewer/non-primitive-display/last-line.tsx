@@ -19,9 +19,11 @@ export default function LastLine({
   }
 
   return (
-    <pre className="font-mono font-bold cursor-pointer" onDoubleClick={onEdit}>
-      {symbol}
-      {trailingComma && ","}
-    </pre>
+    <button onDoubleClick={onEdit} tabIndex={-1}>
+      <pre className="font-mono font-bold">
+        {symbol}
+        {trailingComma && ","}
+      </pre>
+    </button>
   );
 }
