@@ -10,76 +10,76 @@ export type OpeningSymbol = "{" | "[";
 export type ClosingSymbol = "}" | "]";
 
 interface LeafJSONNode {
-	id: string;
-	key: string;
-	value: JSONPrimitive;
-	depth: number;
-	path: (string | number)[];
-	openingSymbol: undefined;
-	closingSymbol: undefined;
-	children: string[];
-	stringified?: boolean;
-	parent?: string | null;
+    id: string;
+    key: string;
+    value: JSONPrimitive;
+    depth: number;
+    path: (string | number)[];
+    openingSymbol: undefined;
+    closingSymbol: undefined;
+    children: string[];
+    stringified?: boolean;
+    parent?: string | null;
 }
 
 interface EmptyObjectJSONNode {
-	id: string;
-	key?: string;
-	value: undefined;
-	depth: number;
-	path: (string | number)[];
-	openingSymbol: "{";
-	closingSymbol: "}";
-	children: string[];
-	stringified?: boolean;
-	parent?: string | null;
+    id: string;
+    key?: string;
+    value: undefined;
+    depth: number;
+    path: (string | number)[];
+    openingSymbol: "{";
+    closingSymbol: "}";
+    children: string[];
+    stringified?: boolean;
+    parent?: string | null;
 }
 
 interface EmptyArrayJSONNode {
-	id: string;
-	key?: string;
-	value: undefined;
-	depth: number;
-	path: (string | number)[];
-	openingSymbol: "[";
-	closingSymbol: "]";
-	children: string[];
-	stringified?: boolean;
-	parent?: string | null;
+    id: string;
+    key?: string;
+    value: undefined;
+    depth: number;
+    path: (string | number)[];
+    openingSymbol: "[";
+    closingSymbol: "]";
+    children: string[];
+    stringified?: boolean;
+    parent?: string | null;
 }
 
 interface OpeningLineJSONNode {
-	id: string;
-	key?: string;
-	value: undefined;
-	depth: number;
-	path: (string | number)[];
-	openingSymbol: OpeningSymbol;
-	closingSymbol: undefined;
-	children: string[];
-	stringified?: boolean;
-	parent?: string | null;
+    id: string;
+    key?: string;
+    value: undefined;
+    depth: number;
+    path: (string | number)[];
+    openingSymbol: OpeningSymbol;
+    closingSymbol: undefined;
+    children: string[];
+    stringified?: boolean;
+    parent?: string | null;
 }
 
 interface ClosingLineJSONNode {
-	id: string;
-	key: undefined;
-	value: undefined;
-	depth: number;
-	path: (string | number)[];
-	openingSymbol: undefined;
-	closingSymbol: ClosingSymbol;
-	children: string[];
-	stringified?: boolean;
-	parent?: string | null;
+    id: string;
+    key: undefined;
+    value: undefined;
+    depth: number;
+    path: (string | number)[];
+    openingSymbol: undefined;
+    closingSymbol: ClosingSymbol;
+    children: string[];
+    stringified?: boolean;
+    parent?: string | null;
 }
 
 export type FlattenedJSONNode =
-	| LeafJSONNode
-	| EmptyObjectJSONNode
-	| EmptyArrayJSONNode
-	| OpeningLineJSONNode
-	| ClosingLineJSONNode;
+    | LeafJSONNode
+    | EmptyObjectJSONNode
+    | EmptyArrayJSONNode
+    | OpeningLineJSONNode
+    | ClosingLineJSONNode;
 
 // export interface FlattenedJSONNode {
 // 	id: string;
