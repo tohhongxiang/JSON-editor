@@ -40,7 +40,7 @@ export default function ValueEditor({
 
     return (
         <form
-            className="flex max-w-lg flex-row items-center gap-2"
+            className="flex min-w-[500px] max-w-lg flex-row items-center gap-2 pr-8"
             onSubmit={handleSubmit}
         >
             <div className="flex flex-row items-center gap-1">
