@@ -40,10 +40,10 @@ export default function ValueEditor({
 
     return (
         <form
-            className="flex min-w-[500px] max-w-lg flex-row items-center gap-2 pr-8"
+            className="flex w-full flex-row items-center gap-2 pr-8"
             onSubmit={handleSubmit}
         >
-            <div className="flex flex-row items-center gap-1">
+            <div className="flex grow flex-row items-center gap-1">
                 <Input
                     value={editedNodeKey}
                     onChange={(e) => setEditedNodeKey(e.target.value)}
@@ -56,6 +56,7 @@ export default function ValueEditor({
                     value={editedNodeValue}
                     onChange={(e) => setEditedNodeValue(e.target.value)}
                     placeholder="value"
+                    className="grow"
                 />
             </div>
             <Button>Submit</Button>
