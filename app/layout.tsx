@@ -20,6 +20,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
+            <title>JSON Editor</title>
             <body className={`${inter.variable} antialiased`}>
                 {children}
                 <Toaster />
