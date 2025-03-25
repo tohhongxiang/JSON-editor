@@ -65,9 +65,11 @@ export default function Home() {
             <div className="flex h-screen w-1/2 flex-col">
                 <div className="mb-1 flex flex-row items-center justify-between border-b px-4 py-2">
                     <h1 className="font-bold">Output</h1>
-                    <Button onClick={handleCopy}>
-                        <Copy />
-                    </Button>
+                    <div className="flex flex-row gap-8">
+                        <Button onClick={handleCopy} variant="secondary">
+                            <Copy />
+                        </Button>
+                    </div>
                 </div>
                 <JSONViewer text={text} onChange={handleChange} />
             </div>

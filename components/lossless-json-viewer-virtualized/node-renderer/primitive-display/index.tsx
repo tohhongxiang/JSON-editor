@@ -62,9 +62,9 @@ export default function PrimitiveDisplay({
 
     return (
         <div className="flex flex-col">
-            <div className="group flex flex-row gap-2">
+            <div className="group flex flex-row">
                 <button
-                    className="flex flex-row"
+                    className="flex flex-row pr-2"
                     onDoubleClick={() => setIsEditing(true)}
                 >
                     {node.key ? (
@@ -86,6 +86,11 @@ export default function PrimitiveDisplay({
                     onEdit={() => setIsEditing(true)}
                     onAdd={node.parent ? () => setIsAdding(true) : undefined}
                     onDelete={onDelete}
+                    onCopy={() =>
+                        navigator.clipboard.writeText(
+                            convertValueIntoString(node.value),
+                        )
+                    }
                     className="invisible group-hover:visible"
                 />
             </div>

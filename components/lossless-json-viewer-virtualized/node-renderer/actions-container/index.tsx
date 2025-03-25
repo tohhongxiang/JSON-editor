@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Pencil, Plus, Trash } from "lucide-react";
+import { Copy, Pencil, Plus, Trash } from "lucide-react";
 import { DetailedHTMLProps, HTMLAttributes } from "react";
 
 interface ActionsContainerProps
@@ -8,12 +8,14 @@ interface ActionsContainerProps
     onAdd?: () => void;
     onEdit?: () => void;
     onDelete?: () => void;
+    onCopy?: () => void;
 }
 
 export default function ActionsContainer({
     onAdd,
     onEdit,
     onDelete,
+    onCopy,
     ...props
 }: ActionsContainerProps) {
     return (
@@ -46,6 +48,16 @@ export default function ActionsContainer({
                     onClick={onDelete}
                 >
                     <Trash />
+                </Button>
+            )}
+            {onCopy && (
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={onCopy}
+                >
+                    <Copy />
                 </Button>
             )}
         </div>

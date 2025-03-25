@@ -1,23 +1,16 @@
-import { useMemo, useRef, useState } from "react";
-import {
-    FlattenedJSONNode,
-    FlattenedJSONOpeningLine,
-    JSONValue,
-} from "./types";
-import flattenJSON from "./utils/flatten-json";
-import safeJSONParse from "./utils/safe-json-parse";
+import { useEffect, useRef, useState } from "react";
+import { FlattenedJSONOpeningLine } from "./types";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import normalizeFlattenedJSONNodeArray from "./utils/normalize-flattened-json-nodes";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import NodeRenderer from "./node-renderer";
-import getAllDescendants from "./utils/get-all-descendants";
-import updateNode from "./utils/update-node";
 import unflattenJSON from "./utils/unflatten-json";
-import { stringify } from "lossless-json";
-import isOpeningLineNode from "./node-renderer/utils/is-opening-line-node";
-import addNode from "./utils/add-node";
-import deleteNode from "./utils/delete-node";
+import isClosingLineNode from "./utils/is-closing-line-node";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import useFlattenedJSON from "./use-flattened-json";
 import isPrimitiveNode from "./utils/is-primitive-node";
+import convertValueIntoString from "./node-renderer/utils/convert-value-into-string";
 
 interface LosslessJSONVirtualizedViewerProps {
     text: string;
@@ -28,152 +21,42 @@ export default function LosslessJSONVirtualizedViewer({
     text,
     onChange,
 }: LosslessJSONVirtualizedViewerProps) {
-    const [ids, nodes] = useMemo(
-        () =>
-            normalizeFlattenedJSONNodeArray(
-                flattenJSON({ data: safeJSONParse(text) as JSONValue }),
-            ),
-        [text],
+    const {
+        ids,
+        nodes,
+        collapsedIds,
+        finalShownIds,
+        collapse: handleCollapse,
+        expand: handleExpand,
+        update: handleUpdate,
+        add: handleAdd,
+        delete: handleDelete,
+    } = useFlattenedJSON({ text, onChange });
+
+    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [highlightIndex, setHighlightIndex] = useState(0);
+    useEffect(() => {
+        setHighlightIndex(0);
+    }, [searchText, text]);
+    const highlightSearchResults =
+        searchText.length > 0
+            ? Object.values(nodes).filter(
+                  (node) =>
+                      (!isClosingLineNode(node) &&
+                          node.key?.includes(searchText)) ||
+                      (isPrimitiveNode(node) &&
+                          convertValueIntoString(node.value)?.includes(
+                              searchText,
+                          )),
+              )
+            : [];
+    const highlightedIds = new Set(
+        highlightSearchResults.map((node) => node.id),
     );
-
-    const [collapsedIds, setCollapsedIds] = useState(
-        new Set<FlattenedJSONNode["id"]>(),
-    );
-    const handleCollapse = (id: FlattenedJSONNode["id"]) => {
-        setCollapsedIds(
-            (prev) =>
-                new Set(
-                    [...prev, id].filter(
-                        (collapsedId) => nodes[collapsedId] !== undefined,
-                    ),
-                ),
-        );
-    };
-    const handleExpand = (id: FlattenedJSONNode["id"]) => {
-        setCollapsedIds(
-            (prev) =>
-                new Set(
-                    [...prev].filter(
-                        (hiddenId) =>
-                            hiddenId !== id && nodes[hiddenId] !== undefined,
-                    ),
-                ),
-        );
-    };
-
-    const handleUpdate =
-        (id: FlattenedJSONNode["id"]) =>
-        (updatedNode: { updatedKey: string; updatedValue: JSONValue }) => {
-            const { ids: updatedIds, nodes: updatedNodes } = updateNode(
-                id,
-                updatedNode,
-                { ids, nodes },
-            );
-
-            console.log(
-                ids.map((id) => nodes[id]),
-                unflattenJSON(updatedIds, updatedNodes),
-                stringify(unflattenJSON(updatedIds, updatedNodes)),
-            );
-            onChange?.(
-                stringify(unflattenJSON(updatedIds, updatedNodes), null, 2)!,
-            );
-        };
-
-    const handleAdd =
-        (id: FlattenedJSONNode["id"]) =>
-        (updatedNode: { updatedKey: string; updatedValue: JSONValue }) => {
-            const originNode = nodes[id];
-            console.log(originNode);
-            if (isOpeningLineNode(originNode)) {
-                const { ids: updatedIds, nodes: updatedNodes } = addNode(
-                    originNode.id,
-                    0,
-                    updatedNode,
-                    { ids, nodes },
-                );
-
-                onChange?.(
-                    stringify(
-                        unflattenJSON(updatedIds, updatedNodes),
-                        null,
-                        2,
-                    )!,
-                );
-            } else if (isPrimitiveNode(originNode)) {
-                const parentNode = originNode.parent
-                    ? nodes[originNode.parent]
-                    : undefined;
-                if (!parentNode)
-                    throw new Error(
-                        "Parent node not found when adding to primitive node",
-                    );
-
-                const { ids: updatedIds, nodes: updatedNodes } = addNode(
-                    parentNode.id,
-                    parentNode.children.indexOf(originNode.id) + 1,
-                    updatedNode,
-                    { ids, nodes },
-                );
-
-                onChange?.(
-                    stringify(
-                        unflattenJSON(updatedIds, updatedNodes),
-                        null,
-                        2,
-                    )!,
-                );
-            } else {
-                const parentNode = nodes[originNode.parent];
-                if (!parentNode)
-                    throw new Error(
-                        "Parent node not found when adding to closing symbol",
-                    );
-
-                const grandparentId = parentNode.parent;
-                const grandparentNode = grandparentId
-                    ? nodes[grandparentId]
-                    : undefined;
-                if (!grandparentNode)
-                    throw new Error(
-                        "Grandparent node not found when adding to closing symbol",
-                    );
-
-                const { ids: updatedIds, nodes: updatedNodes } = addNode(
-                    grandparentNode.id,
-                    grandparentNode.children.indexOf(parentNode.id) + 1,
-                    updatedNode,
-                    { ids, nodes },
-                );
-
-                onChange?.(
-                    stringify(
-                        unflattenJSON(updatedIds, updatedNodes),
-                        null,
-                        2,
-                    )!,
-                );
-            }
-        };
-
-    const handleDelete = (id: FlattenedJSONNode["id"]) => () => {
-        const originNode = nodes[id];
-        const { ids: updatedIds, nodes: updatedNodes } = deleteNode(
-            originNode.id,
-            { ids, nodes },
-        );
-
-        onChange?.(
-            stringify(unflattenJSON(updatedIds, updatedNodes), null, 2)!,
-        );
-    };
-
-    const hiddenIds = new Set(
-        [...collapsedIds]
-            .map((id) => [...getAllDescendants(id, ids, nodes)])
-            .flat(),
-    );
-    const finalShownIds = ids.filter((id) => !hiddenIds.has(id));
+    const searchFocusedId = highlightSearchResults.map((node) => node.id)[
+        highlightIndex
+    ];
 
     const scrollParentRef = useRef<HTMLDivElement>(null);
     const virtualizer = useVirtualizer({
@@ -182,8 +65,17 @@ export default function LosslessJSONVirtualizedViewer({
         estimateSize: () => 25,
         overscan: 25,
     });
+    useEffect(() => {
+        if (!searchFocusedId || !searchText) return;
+
+        virtualizer.scrollToIndex(finalShownIds.indexOf(searchFocusedId), {
+            align: "center",
+            behavior: "auto",
+        });
+    }, [virtualizer, searchFocusedId, finalShownIds, searchText]);
 
     const items = virtualizer.getVirtualItems();
+
     return (
         <ScrollArea
             ref={scrollParentRef}
@@ -192,6 +84,65 @@ export default function LosslessJSONVirtualizedViewer({
                 overflow: "auto",
             }}
         >
+            {isSearchBoxOpen ? (
+                <div className="absolute right-2 top-0 z-10 flex flex-row items-center justify-center gap-2 rounded-md border bg-white px-4 py-2 pr-0">
+                    <Input
+                        placeholder="Search"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                    {searchText.length > 0 && (
+                        <div>
+                            <p className="font-light text-muted-foreground">
+                                {highlightSearchResults.length === 0
+                                    ? `0/0`
+                                    : `${highlightIndex + 1}/${highlightSearchResults.length}`}
+                            </p>
+                        </div>
+                    )}
+                    <div className="flex flex-row">
+                        <Button
+                            variant="ghost"
+                            onClick={() =>
+                                setHighlightIndex(
+                                    (c) =>
+                                        (c -
+                                            1 +
+                                            highlightSearchResults.length) %
+                                        highlightSearchResults.length,
+                                )
+                            }
+                        >
+                            <ChevronUp />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() =>
+                                setHighlightIndex(
+                                    (c) =>
+                                        (c + 1) % highlightSearchResults.length,
+                                )
+                            }
+                        >
+                            <ChevronDown />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsSearchBoxOpen(false)}
+                        >
+                            <X />
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <Button
+                    className="absolute right-2 top-0 z-10"
+                    variant="secondary"
+                    onClick={() => setIsSearchBoxOpen(true)}
+                >
+                    <Search />
+                </Button>
+            )}
             <div
                 style={{
                     height: `${virtualizer.getTotalSize()}px`,
@@ -234,6 +185,14 @@ export default function LosslessJSONVirtualizedViewer({
                                     onUpdate={handleUpdate(node.id)}
                                     onAdd={handleAdd(node.id)}
                                     onDelete={handleDelete(node.id)}
+                                    highlighted={
+                                        isSearchBoxOpen &&
+                                        highlightedIds.has(node.id)
+                                    }
+                                    searchFocused={
+                                        isSearchBoxOpen &&
+                                        searchFocusedId === node.id
+                                    }
                                     parent={
                                         nodeParent as
                                             | FlattenedJSONOpeningLine

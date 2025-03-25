@@ -11,6 +11,7 @@ import OpeningLineDisplay from "./opening-line-display";
 import PrimitiveDisplay from "./primitive-display";
 import isEmptyNonPrimitiveNode from "../utils/is-empty-non-primitive-node";
 import isOpeningLineNode from "./utils/is-opening-line-node";
+import { cn } from "@/lib/utils";
 
 interface NodeRendererProps {
     node: FlattenedJSONNode;
@@ -18,6 +19,8 @@ interface NodeRendererProps {
     parent?: FlattenedJSONOpeningLine;
     grandparent?: FlattenedJSONOpeningLine;
     collapsed?: boolean;
+    highlighted?: boolean;
+    searchFocused?: boolean;
     onExpand?: (parentId: FlattenedJSONNode["id"]) => void;
     onCollapse?: (parentId: FlattenedJSONNode["id"]) => void;
     onUpdate?: ({
@@ -36,12 +39,19 @@ interface NodeRendererProps {
     }) => void;
     onDelete?: () => void;
 }
+
+const HIGHLIGHTED_CLASSNAME = "bg-muted-foreground/25";
+const SEARCH_FOCUSED_CLASSNAME = "bg-orange-400";
+const BASE_CLASSNAME = "rounded-md pl-1";
+
 export default function NodeRenderer({
     node,
     unflattenedValue,
     parent,
     grandparent,
     collapsed = false,
+    highlighted = false,
+    searchFocused = false,
     onExpand,
     onCollapse,
     onUpdate,
@@ -52,7 +62,14 @@ export default function NodeRenderer({
 
     if (isEmptyNonPrimitiveNode(node)) {
         return (
-            <div style={{ marginLeft }}>
+            <div
+                style={{ marginLeft }}
+                className={cn(
+                    BASE_CLASSNAME,
+                    highlighted && HIGHLIGHTED_CLASSNAME,
+                    searchFocused && SEARCH_FOCUSED_CLASSNAME,
+                )}
+            >
                 <EmptyNonPrimitiveDisplay
                     node={node}
                     unflattenedValue={unflattenedValue}
@@ -66,7 +83,14 @@ export default function NodeRenderer({
 
     if (isOpeningLineNode(node)) {
         return (
-            <div style={{ marginLeft }}>
+            <div
+                style={{ marginLeft }}
+                className={cn(
+                    BASE_CLASSNAME,
+                    highlighted && HIGHLIGHTED_CLASSNAME,
+                    searchFocused && SEARCH_FOCUSED_CLASSNAME,
+                )}
+            >
                 <OpeningLineDisplay
                     node={node}
                     unflattenedValue={unflattenedValue}
@@ -83,7 +107,14 @@ export default function NodeRenderer({
 
     if (isClosingLineNode(node)) {
         return (
-            <div style={{ marginLeft }}>
+            <div
+                style={{ marginLeft }}
+                className={cn(
+                    BASE_CLASSNAME,
+                    highlighted && HIGHLIGHTED_CLASSNAME,
+                    searchFocused && SEARCH_FOCUSED_CLASSNAME,
+                )}
+            >
                 <ClosingLineDisplay
                     node={node}
                     grandparent={grandparent}
@@ -96,7 +127,14 @@ export default function NodeRenderer({
 
     if (isPrimitiveNode(node)) {
         return (
-            <div style={{ marginLeft }}>
+            <div
+                style={{ marginLeft }}
+                className={cn(
+                    BASE_CLASSNAME,
+                    highlighted && HIGHLIGHTED_CLASSNAME,
+                    searchFocused && SEARCH_FOCUSED_CLASSNAME,
+                )}
+            >
                 <PrimitiveDisplay
                     node={node}
                     onUpdate={onUpdate}
