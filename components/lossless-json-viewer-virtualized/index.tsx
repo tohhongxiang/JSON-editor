@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { FlattenedJSONOpeningLine } from "./types";
+import { useEffect, useMemo, useRef } from "react";
+import { FlattenedJSONNode, FlattenedJSONOpeningLine } from "./types";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import NodeRenderer from "./node-renderer";
 import unflattenJSON from "./utils/unflatten-json";
 import isClosingLineNode from "./utils/is-closing-line-node";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import useFlattenedJSON from "./use-flattened-json";
 import isPrimitiveNode from "./utils/is-primitive-node";
 import convertValueIntoString from "./node-renderer/utils/convert-value-into-string";
+import SearchBox from "./search-box";
+import useSearchBox from "./search-box/use-search-box";
 
 interface LosslessJSONVirtualizedViewerProps {
     text: string;
@@ -33,28 +32,22 @@ export default function LosslessJSONVirtualizedViewer({
         delete: handleDelete,
     } = useFlattenedJSON({ text, onChange });
 
-    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState(false);
-    const [searchText, setSearchText] = useState("");
-    const [highlightIndex, setHighlightIndex] = useState(0);
-    useEffect(() => {
-        setHighlightIndex(0);
-    }, [searchText, text]);
-    const highlightSearchResults =
-        searchText.length > 0
-            ? Object.values(nodes).filter(
-                  (node) =>
-                      (!isClosingLineNode(node) &&
-                          node.key?.includes(searchText)) ||
-                      (isPrimitiveNode(node) &&
-                          convertValueIntoString(node.value)?.includes(
-                              searchText,
-                          )),
-              )
-            : [];
-    const highlightedIds = new Set(
-        highlightSearchResults.map((node) => node.id),
-    );
-    const searchFocusedId = highlightSearchResults.map((node) => node.id)[
+    const nodeArray = useMemo(() => Object.values(nodes), [nodes]);
+    const {
+        isOpen: isSearchBoxOpen,
+        setIsOpen: setIsSearchBoxOpen,
+        searchText,
+        setSearchText,
+        highlightIndex,
+        setHighlightIndex,
+        searchMatches,
+    } = useSearchBox({
+        data: nodeArray,
+        getMatch: getSearchMatches,
+    });
+
+    const highlightedIds = new Set(searchMatches.map((node) => node.id));
+    const searchFocusedId = searchMatches.map((node) => node.id)[
         highlightIndex
     ];
 
@@ -84,65 +77,24 @@ export default function LosslessJSONVirtualizedViewer({
                 overflow: "auto",
             }}
         >
-            {isSearchBoxOpen ? (
-                <div className="absolute right-2 top-0 z-10 flex flex-row items-center justify-center gap-2 rounded-md border bg-white px-4 py-2 pr-0">
-                    <Input
-                        placeholder="Search"
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
-                    {searchText.length > 0 && (
-                        <div>
-                            <p className="font-light text-muted-foreground">
-                                {highlightSearchResults.length === 0
-                                    ? `0/0`
-                                    : `${highlightIndex + 1}/${highlightSearchResults.length}`}
-                            </p>
-                        </div>
-                    )}
-                    <div className="flex flex-row">
-                        <Button
-                            variant="ghost"
-                            onClick={() =>
-                                setHighlightIndex(
-                                    (c) =>
-                                        (c -
-                                            1 +
-                                            highlightSearchResults.length) %
-                                        highlightSearchResults.length,
-                                )
-                            }
-                        >
-                            <ChevronUp />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={() =>
-                                setHighlightIndex(
-                                    (c) =>
-                                        (c + 1) % highlightSearchResults.length,
-                                )
-                            }
-                        >
-                            <ChevronDown />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={() => setIsSearchBoxOpen(false)}
-                        >
-                            <X />
-                        </Button>
-                    </div>
-                </div>
-            ) : (
-                <Button
-                    className="absolute right-2 top-0 z-10"
-                    variant="secondary"
-                    onClick={() => setIsSearchBoxOpen(true)}
-                >
-                    <Search />
-                </Button>
-            )}
+            <SearchBox
+                isOpen={isSearchBoxOpen}
+                onOpenChange={setIsSearchBoxOpen}
+                value={searchText}
+                onValueChange={setSearchText}
+                numberOfResults={searchMatches.length}
+                highlightedResultIndex={highlightIndex}
+                onGoToNextResult={() =>
+                    setHighlightIndex((c) => (c + 1) % searchMatches.length)
+                }
+                onGoToPreviousResult={() =>
+                    setHighlightIndex(
+                        (c) =>
+                            (c - 1 + searchMatches.length) %
+                            searchMatches.length,
+                    )
+                }
+            />
             <div
                 style={{
                     height: `${virtualizer.getTotalSize()}px`,
@@ -211,5 +163,18 @@ export default function LosslessJSONVirtualizedViewer({
             </div>
             <ScrollBar orientation="horizontal" />
         </ScrollArea>
+    );
+}
+
+function getSearchMatches(searchText: string, data: FlattenedJSONNode[]) {
+    if (searchText.length === 0) {
+        return [];
+    }
+
+    return data.filter(
+        (node) =>
+            (!isClosingLineNode(node) && node.key?.includes(searchText)) ||
+            (isPrimitiveNode(node) &&
+                convertValueIntoString(node.value)?.includes(searchText)),
     );
 }
